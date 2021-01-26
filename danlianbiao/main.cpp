@@ -19,14 +19,28 @@ Linklist List_HeadInsertWithoutHead(Linklist &L);//不带头节点的头插法
 void showLinklist(Linklist L);
 void DeleteWithoutHead(Linklist &L, int x);//2.3.1 删除不带头节点的值为x的递归算法（即函数里面套函数，明确终止条件）
 void DeleteWithHead(Linklist &L, int x);//2.3.2 删除带头节点值为x的算法
+void Res_Print(Linklist L);//2.3.3 倒叙输出带头节点单链表的元素
+void DeleteMin(Linklist L);//2.3.4 带头节点单链表中删除唯一最小元素
 
 int main()
 {
     Linklist L=NULL;
+/* 2.3.1题的输入输出测试
     List_HeadInsertWithoutHead(L);
     showLinklist(L);
     DeleteWithoutHead(L, 1);
     showLinklist(L);
+*/
+/* 2.3.2题的输入输出
+    List_TrailInsert(L);
+    showLinklist(L);
+    DeleteWithHead(L, 2);
+    showLinklist(L);
+*/
+    List_TrailInsert(L);
+    showLinklist(L);
+    Res_Print(L);
+
     //cout<<GetElem(L, 3)->data<<endl; 用移动指针的方式来访问数据
     cout<<"hello"<<endl;
     return 0;
@@ -70,7 +84,7 @@ Linklist List_TrailInsert(Linklist &L)
 {
     L=(Linklist)malloc(sizeof(Node));//因为不需要关心L->next指向哪里，所以也不需要初始化空链表了
     Node *s,*r=L;//需要多一个尾指针r来指向最后一个将要插入的元素，且要先申请L这个空间，再将L的地址赋值给r，
-    int A[]={1,2,13,21,25,3,2,7,8,1,2,3};
+    int A[]={2,2,1,3,2,3,2,2};
     for(int i=0;i<sizeof(A)/sizeof(int);i++)
     {
         s=(Node*)malloc(sizeof(Node));
@@ -127,4 +141,34 @@ void DeleteWithoutHead(Linklist &L, int x)
         DeleteWithoutHead(L->next, x);//如果数据域不是x，那么跳到下个节点
 }
 
+//2.3.2 删除带头节点值为x的算法,并释放空间
+void DeleteWithHead(Linklist &L, int x)
+{
+    Node *p=L->next,*pre=L,*q;//p来起到遍历访问所有节点的作用，和上一题L的作用相同，q用来表示要删除的节点来释放空间，pre是p的前驱节点
+    while(p!=NULL)
+    {
+        if(p->data==x)
+        {
+            q=p;
+            p=p->next;
+            pre->next=p;
+            free(q);
+        }
+        else
+        {
+            pre=p;
+            p=p->next;
+        }
+    }
+    return;
+}
 
+//2.3.3 反向输出带头节点的单链表
+void Res_Print(Linklist L)
+{
+    if(L->next!=NULL)//确定遍历到最后一个节点
+    {
+        Res_Print(L->next);//这里可以把函数换成语句写进去，就可以发现最后的节点是最里面的循环，然后它的cout要第一个输出，然后从上到下，第一个节点的cout最后一个输出
+    }
+    if(L!=NULL) cout<<L->data<<" ";
+}
