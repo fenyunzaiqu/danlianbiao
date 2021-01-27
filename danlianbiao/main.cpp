@@ -24,12 +24,16 @@ Linklist DeleteMin(Linklist &L);//2.3.4 带头节点单链表中删除唯一最�
 Linklist Reverse_1(Linklist L);//2.3.5.1逆置的第一种算法，将头节点摘下，然后依次用头插法插入，就达到逆置的效果
 Linklist Reverse_2(Linklist L);//2.3.5.2逆置的第二种算法，将前驱指针pre，后驱指针r反转
 void AscendSort(Linklist &L);//2.3.6 将单链表升序排序，还有一种是遍历访问完数据域，将他们存储到数组中后排序，然后再按顺序将数据重写入链表
+void DeleteBetween(Linklist &L, int left, int right);//2.3.7 将无序带头节点的单链表处于给定两个元素之间的元素删除
+Linklist findcommon(Linklist L1, Linklist L2);//2.3.8 寻找两个链表的公共节点
+int Length(Linklist L);//计算表长的函数
 
 int main()
 {
-    Linklist L=NULL;
+    Linklist L=nullptr;
     List_TrailInsert(L);
     showLinklist(L);
+    cout<<Length(L)<<endl;
 /* 2.3.1题的输入输出测试
     List_HeadInsertWithoutHead(L);
     showLinklist(L);
@@ -53,8 +57,29 @@ int main()
     showLinklist(Reverse_1(L));
     showLinklist(Reverse_2(L));
 */
+/* 2.3.6的升序排序
     AscendSort(L);
+*/
+    //DeleteBetween(L, 2, 3); 2.3.7的删除两个之间的元素
+/* 2.3.8创建一个有公共节点的单链表并查找公共节点
+    Linklist L2=NULL,L3=NULL;//L2是公共节点（链表）
+    List_HeadInsertWithoutHead(L2);//创建公共节点第一个值为13的链表
+    List_HeadInsert(L3);//短链表
+    Node *p=L->next,*q=L3->next;//将p指针和q指针移动到L和L3的末尾
+    while(p->next!=NULL)
+    {
+        p=p->next;
+    }
+    p->next=L2;//将L和L3的末尾接上L2
+    while(q->next!=NULL)
+    {
+        q=q->next;
+    }
+    q->next=L2;
+    cout<<findcommon(L, L3)->data<<endl;
+*/
     showLinklist(L);
+
     //cout<<GetElem(L, 3)->data<<endl; 用移动指针的方式来访问数据
     return 0;
 }
@@ -65,8 +90,8 @@ Linklist List_HeadInsert(Linklist &L)
     Node *s;//定义节点s
     L=(Linklist)malloc(sizeof(Node));
     //定义头节点L,并申请内存空间，其中Linklist也可以换成Node*，是一个东西，代表申请空间的数据类型是啥。当没有这个头节点L的时候，需要在每次插入新节点后将它的地址赋值给L 即L=s;
-    L->next=NULL;
-    int A[]={1,3,4,5,6,12,3,14,5};
+    L->next=nullptr;
+    int A[]={1,2,3,3,2,1,2,2,3,1};
     for(int i=0;i<(sizeof(A)/sizeof(int));i++)
     {
         s=(Node*)malloc(sizeof(Node));
@@ -81,7 +106,7 @@ Linklist List_HeadInsert(Linklist &L)
 Linklist List_HeadInsertWithoutHead(Linklist &L)
 {
     Node *s=NULL;
-    int A[]={1,2,3,4,5,1,1};
+    int A[]={9,10,11,12,13};
     for(int i=0;i<(sizeof(A)/sizeof(int));i++)
     {
         s=(Node*)malloc(sizeof(Node));
@@ -239,8 +264,8 @@ Linklist Reverse_2(Linklist L)
 //2.3.6 升序排序单链表
 void AscendSort(Linklist &L)
 {
-    Node *p=L->next,*q=p->next,*pre;//pre是新建只有一个元素链表（抽象）的指针，本质上是L的第一个节点p断开了后面的链接，造成L变成了新建链表，而q储存着后面链表的信息
-    p->next=NULL;//以第一个节点构造只有一个节点的链表
+    Node *p=L->next,*q=p->next,*pre;//pre是新建只有一个元素链表（抽象的指针，本质上是L的第一个节点p断开了后面的链接，造成L变成了新建链表，而q储存着后面链表的信息
+    p->next=nullptr;//以第一个节点构造只有一个节点的链表
     p=q;//断开后将后面的“地址信息”重新给p
     while(p!=NULL)
     {
@@ -254,3 +279,72 @@ void AscendSort(Linklist &L)
         p=q;//然后p节点在原本链表向后移一位
     }
 }
+
+//2.3.7 将无序带头节点的单链表处于给定两个元素之间的元素删除
+void DeleteBetween(Linklist &L, int left, int right)
+{
+    Node *p=L->next,*pre=L;
+    while(p!=NULL)
+    {
+        if(p->data>=left&&p->data<=right)
+        {
+            pre->next=p->next;//断开p的前驱节点与p的链接，将pre连到p的下一个节点
+            free(p);//删除节点p
+            p=pre->next;//将p节点移动到pre的下一个节点
+        }
+        else
+        {
+            pre=p;//两个指针同时向后移动一个
+            p=p->next;
+        }
+    }
+}
+
+//2.3.8 寻找两个单链表的公共节点
+Linklist findcommon(Linklist L1, Linklist L2)
+{
+    int len1=Length(L1),len2=Length(L2);//得到两个单链表的长度
+    int distance=0;//长度之差
+    Linklist longList,shortList;
+    if(len1>len2)//根据长度来决定哪个是长链表，哪个是短链表
+    {
+        longList=L1->next;
+        shortList=L2->next;
+        distance=len1-len2;
+    }
+    else
+    {
+        longList=L2->next;
+        shortList=L1->next;
+        distance=len2-len1;
+    }
+    while(distance--)//将长链表的指针移到直到长度与短链表相同
+    {
+        longList=longList->next;
+    }
+    while (longList!=NULL) {
+        if(longList==shortList)//到达公共节点
+            return longList;
+        else//否则一起同时向后遍历
+        {
+            longList=longList->next;
+            shortList=shortList->next;
+        }
+    }
+    return NULL;
+}
+
+int Length(Linklist L)
+{
+    Node *p=L;
+    int length=0;
+    if(L->data==0)//如果第一个节点是头节点，那么长度-1；
+        length=-1;
+    while(p!=NULL)
+    {
+        p=p->next;
+        length++;
+    }
+    return length;
+}
+
