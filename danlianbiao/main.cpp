@@ -27,13 +27,14 @@ void AscendSort(Linklist &L);//2.3.6 将单链表升序排序，还有一种是�
 void DeleteBetween(Linklist &L, int left, int right);//2.3.7 将无序带头节点的单链表处于给定两个元素之间的元素删除
 Linklist findcommon(Linklist L1, Linklist L2);//2.3.8 寻找两个链表的公共节点
 int Length(Linklist L);//计算表长的函数
+void SequenceAscend(Linklist L);//2.3.9 依次递增输出单链表的元素并释放节点，不能用数组当辅助存储空间
+Linklist Discrete(Linklist &A);//2.3.10 将单链表中奇偶序号的元素分开
+Linklist Discrete2(Linklist &A);//2.3.11 一个用头插一个用尾插将元素分开
 
 int main()
 {
     Linklist L=nullptr;
     List_TrailInsert(L);
-    showLinklist(L);
-    cout<<Length(L)<<endl;
 /* 2.3.1题的输入输出测试
     List_HeadInsertWithoutHead(L);
     showLinklist(L);
@@ -78,7 +79,11 @@ int main()
     q->next=L2;
     cout<<findcommon(L, L3)->data<<endl;
 */
+    //SequenceAscend(L); 2.3.9 升序输出元素
+    //showLinklist(Discrete(L)); 2.3.10将奇偶序号的元素分为两个链表，这个返回的事偶数序号的链表，原来的链表被接上了奇数序号节点z
+    showLinklist(Discrete2(L));
     showLinklist(L);
+
 
     //cout<<GetElem(L, 3)->data<<endl; 用移动指针的方式来访问数据
     return 0;
@@ -106,7 +111,7 @@ Linklist List_HeadInsert(Linklist &L)
 Linklist List_HeadInsertWithoutHead(Linklist &L)
 {
     Node *s=NULL;
-    int A[]={9,10,11,12,13};
+    int A[]={1,2,3,4,5};
     for(int i=0;i<(sizeof(A)/sizeof(int));i++)
     {
         s=(Node*)malloc(sizeof(Node));
@@ -122,7 +127,7 @@ Linklist List_TrailInsert(Linklist &L)
 {
     L=(Linklist)malloc(sizeof(Node));//因为不需要关心L->next指向哪里，所以也不需要初始化空链表了
     Node *s,*r=L;//需要多一个尾指针r来指向最后一个将要插入的元素，且要先申请L这个空间，再将L的地址赋值给r，
-    int A[]={1,3,1,2,3};
+    int A[]={1,8,2,9,3,10,4};
     for(int i=0;i<sizeof(A)/sizeof(int);i++)
     {
         s=(Node*)malloc(sizeof(Node));
@@ -334,6 +339,7 @@ Linklist findcommon(Linklist L1, Linklist L2)
     return NULL;
 }
 
+//求数组长度的函数
 int Length(Linklist L)
 {
     Node *p=L;
@@ -348,3 +354,79 @@ int Length(Linklist L)
     return length;
 }
 
+void SequenceAscend(Linklist L)
+{
+    Node *p,*min,*minpre;//只能用p->next来做访问，因为如果多加一个p的前驱pre，然后直接用p->data来比较，那只剩一个节点的时候，p就是无法访问的Null指针，除非再多些一个if处理。
+    while(L->next!=NULL)
+    {
+        p=L->next;//扫描节点
+        minpre=L;//最小值节点的前驱
+        while (p->next!=NULL) {
+            if(p->next->data<minpre->next->data)//两个前驱节点均用next访问，这样找到minpre就能在删除min节点后，重新连上
+            {
+                minpre=p;
+                p=p->next;
+            }
+            else
+            {
+                p=p->next;
+            }
+        }
+        min=minpre->next;
+        minpre->next=min->next;//将这次循环最小元素的前后节点连起来
+        cout<<min->data<<" ";
+        free(min);
+    }
+    free(L);//删除头节点
+}
+
+Linklist Discrete(Linklist &A)
+{
+    int i=0;//虽然完全可以不计数，但如果一次处理两个节点，很容易第二个节点就是末尾的NULL节点，这时候就要多写一个if判断，所以不如简单的来个计数i，然后每次循环处理一个节点。
+    Linklist B=(Linklist)malloc(sizeof(Node));
+    B->next=NULL;
+    Node *ra=A,*rb=B;//创建链表的尾节点，这样好不断衔接尾插链表
+    Node *p=A->next;//遍历的工作指针
+    A->next=NULL;//断开A链表的头节点
+    while(p!=NULL)
+    {
+        i++;
+        if(i%2!=0)
+        {
+            ra->next=p;
+            ra=p;
+        }
+        if(i%2==0)
+        {
+            rb->next=p;
+            rb=p;
+        }
+        p=p->next;
+    }
+    ra->next=NULL;//设置尾节点：即下一个节点为Null
+    rb->next=NULL;
+    return B;
+}
+
+Linklist Discrete2(Linklist &A)
+{
+    Linklist B=(Linklist)malloc(sizeof(Node));
+    B->next=NULL;
+    Node *ra=A,*p=A->next,*q;
+    A->next=NULL;
+    while(p!=NULL)
+    {
+        ra->next=p;
+        ra=p;
+        p=p->next;
+        if(p!=NULL)//括号要全扩住
+        {
+            q=p->next;
+            p->next=B->next;//将p的下一个节点断为B的第一个节点
+            B->next=p;//接着将头节点的下一个节点接为B
+            p=q;//向后移一个节点
+        }
+    }
+    ra->next=NULL;
+    return B;
+}
