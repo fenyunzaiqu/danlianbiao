@@ -30,11 +30,16 @@ int Length(Linklist L);//计算表长的函数
 void SequenceAscend(Linklist L);//2.3.9 依次递增输出单链表的元素并释放节点，不能用数组当辅助存储空间
 Linklist Discrete(Linklist &A);//2.3.10 将单链表中奇偶序号的元素分开
 Linklist Discrete2(Linklist &A);//2.3.11 一个用头插一个用尾插将元素分开
+void DeleteSame(Linklist &L);//2.3.12 在递增单链表中删除相同元素
+void MergeAscendList(Linklist &A,Linklist &B);//2.3.13 将两个递增单链表合成为一个递减单链表
+Linklist Get_Common(Linklist A,Linklist B);//2.3.14 找出两个递增链表的公共元素，创建出一个新链表
+Linklist Union(Linklist &A,Linklist &B);//2.3.15 将两个递增单链表求交集，存放在A链表中
 
 int main()
 {
     Linklist L=nullptr;
     List_TrailInsert(L);
+    showLinklist(L);
 /* 2.3.1题的输入输出测试
     List_HeadInsertWithoutHead(L);
     showLinklist(L);
@@ -81,7 +86,18 @@ int main()
 */
     //SequenceAscend(L); 2.3.9 升序输出元素
     //showLinklist(Discrete(L)); 2.3.10将奇偶序号的元素分为两个链表，这个返回的事偶数序号的链表，原来的链表被接上了奇数序号节点z
-    showLinklist(Discrete2(L));
+    //showLinklist(Discrete2(L));2.3.11一个用尾插法，一个用头插法
+    //DeleteSame(L);2.3.12 将重复的元素删除
+    /* 2.3.13 合并两个递增单链表为单个递减单链表
+    Linklist B=NULL;
+    List_HeadInsert(B);
+    MergeAscendList(L, B);
+    */
+    /* 2.3.14
+    Linklist B=NULL;
+    List_HeadInsert(B);
+    showLinklist(Get_Common(L, B));
+    */
     showLinklist(L);
 
 
@@ -96,7 +112,7 @@ Linklist List_HeadInsert(Linklist &L)
     L=(Linklist)malloc(sizeof(Node));
     //定义头节点L,并申请内存空间，其中Linklist也可以换成Node*，是一个东西，代表申请空间的数据类型是啥。当没有这个头节点L的时候，需要在每次插入新节点后将它的地址赋值给L 即L=s;
     L->next=nullptr;
-    int A[]={1,2,3,3,2,1,2,2,3,1};
+    int A[]={7,6,4,3,2,1};
     for(int i=0;i<(sizeof(A)/sizeof(int));i++)
     {
         s=(Node*)malloc(sizeof(Node));
@@ -127,7 +143,7 @@ Linklist List_TrailInsert(Linklist &L)
 {
     L=(Linklist)malloc(sizeof(Node));//因为不需要关心L->next指向哪里，所以也不需要初始化空链表了
     Node *s,*r=L;//需要多一个尾指针r来指向最后一个将要插入的元素，且要先申请L这个空间，再将L的地址赋值给r，
-    int A[]={1,8,2,9,3,10,4};
+    int A[]={1,1,1,2,3,4,5,7,7,7};
     for(int i=0;i<sizeof(A)/sizeof(int);i++)
     {
         s=(Node*)malloc(sizeof(Node));
@@ -354,6 +370,7 @@ int Length(Linklist L)
     return length;
 }
 
+//2.3.9 升序输出带头节点单链表中的元素
 void SequenceAscend(Linklist L)
 {
     Node *p,*min,*minpre;//只能用p->next来做访问，因为如果多加一个p的前驱pre，然后直接用p->data来比较，那只剩一个节点的时候，p就是无法访问的Null指针，除非再多些一个if处理。
@@ -380,6 +397,7 @@ void SequenceAscend(Linklist L)
     free(L);//删除头节点
 }
 
+//2.3.10 奇偶序号不同输出
 Linklist Discrete(Linklist &A)
 {
     int i=0;//虽然完全可以不计数，但如果一次处理两个节点，很容易第二个节点就是末尾的NULL节点，这时候就要多写一个if判断，所以不如简单的来个计数i，然后每次循环处理一个节点。
@@ -408,6 +426,7 @@ Linklist Discrete(Linklist &A)
     return B;
 }
 
+//2.3.11 B链表用头插法
 Linklist Discrete2(Linklist &A)
 {
     Linklist B=(Linklist)malloc(sizeof(Node));
@@ -429,4 +448,127 @@ Linklist Discrete2(Linklist &A)
     }
     ra->next=NULL;
     return B;
+}
+
+//2.3.12 在递增单链表中删除相同元素
+void DeleteSame(Linklist &L)
+{
+    Node *p=L->next,*q=p->next;//这里要用两个节点，扫描节点p和后继节点q
+    while(p->next!=NULL)
+    {
+        q=p->next;//每次循环保证q是p的下一个节点
+        if(p->data==q->data)
+        {
+            p->next=q->next;
+            free(q);
+        }
+        else
+        p=p->next;//这里p进下一个节点一定要写else里，因为如果出现多个重复的话 如111，p扫到第一个1，删除第二个1，如果这时候就直接进入下一个节点，就会有第三个1没删掉
+    }
+}
+
+//2.3.13 将一个递增单链表合并为一个递减单链表
+void MergeAscendList(Linklist &A,Linklist &B)
+{
+    Node *a=A->next,*b=B->next,*r;
+    A->next=NULL;//将A链表断开
+    while(a!=NULL&&b!=NULL)//当AB链表均没有遍历到最后一个指针
+    {
+        if(a->data<b->data)
+        {
+            r=a->next;//r用来存放a指针后面节点的位置信息
+            a->next=A->next;//头插法，把a插到A的头节点与第一个节点之间
+            A->next=a;
+            a=r;
+        }
+        else
+        {
+            r=b->next;//头插到A、
+            b->next=A->next;
+            A->next=b;
+            b=r;
+        }
+    }
+    if(a)//如果A链表有多的
+    {
+        b=a;//a指针付给b指针
+    }
+    while(b!=NULL)
+    {
+        r=b->next;//头插到A
+        b->next=A->next;
+        A->next=b;
+        b=r;
+    }
+    free(B);
+}
+
+//2.3.14 找出两个递增链表的公共元素，创建出一个新链表
+Linklist Get_Common(Linklist A,Linklist B)
+{
+    Linklist C=(Linklist)malloc(sizeof(Node));
+    Node *ra=A->next,*rb=B->next,*rc=C,*s;//s为创建节点
+    while(ra!=NULL&&rb!=NULL)
+    {
+        if(ra->data<rb->data)//重点！当两个指针，其中一个比较小的时候，较小的就往后移一个
+            ra=ra->next;
+        else if(ra->data>rb->data)
+            rb=rb->next;
+        else//当两个指针的元素相同时，就创建节点尾接，然后
+        {
+            s=(Node*)malloc(sizeof(Node));
+            s->data=ra->data;
+            rc->next=s;//尾插法，接在尾上
+            rc=rc->next;//然后向后移一位
+            ra=ra->next;//a,b扫描的指针也同时往后移一位
+            rb=rb->next;
+        }
+    }
+    rc->next=NULL;
+    return C;
+}
+
+//2.3.15 将两个递增单链表求交集，存放在A链表中
+Linklist Union(Linklist &A,Linklist &B)
+{
+    Node *pa=A->next,*pb=B->next,*pc=A,*u;//pc为合并节点的前驱指针,u为删除节点的指针
+    while(pa!=NULL&&pb!=NULL)//同上题，多加了一个u来删除节点
+    {
+        if(pa->data>pb->data)
+        {
+            u=pb;
+            pb=pb->next;
+            free(u);
+        }
+        else if(pa->data<pb->data)
+        {
+            u=pa;
+            pa=pa->next;
+            free(u);
+        }
+        else
+        {
+            pc->next=pa;
+            pc=pa;
+            pa=pa->next;
+            u=pb;
+            pb=pb->next;
+            free(u);
+        }
+    }
+    while(pa)//pa不为Null
+    {
+        u=pa;
+        pa=pa->next;
+        free(u);
+    }
+    while(pb)//pb不为Null
+    {
+        u=pb;
+        pb=pb->next;
+        free(u);
+    }
+    pc->next=NULL;//设置尾节点
+    free(B);//删除B头
+    return A;
 }
