@@ -6,6 +6,7 @@
 //
 
 #include <iostream>
+#include <vector>
 using namespace::std;
 typedef struct Node{
     int data;
@@ -24,6 +25,11 @@ typedef struct NonNode{
     struct NonNode *pred;
     struct NonNode *next;
 }NonDNode,*NonDLinklist;
+//22题字母
+typedef struct word{
+    char data;
+    struct word *next;
+}wordNode,*wordList;
 
 Linklist List_HeadInsert(Linklist &L);//通过头插法来初始化单链表
 Linklist List_TrailInsert(Linklist &L);//通过尾插法来初始化单链表
@@ -58,6 +64,10 @@ void DeleteMinToNull(Linklist &L);//2.3.19 每次删除循环单链表中最小�
 NonDLinklist CreateNonCircularDLinklistWithHead(NonDLinklist &L);//创建带头节点和freq的非循环双向链表
 NonDLinklist Locate(NonDLinklist &L, int x);//2.3.20 查找x的节点，摘下（删除），然后插入到该被插（freq）的地方
 int FindLastKposition(Linklist L, int k);//2.3.21 找到单链表倒数第k个位置的元素的值
+wordList CreateWordListWithHead(wordList &L, vector<char>A, wordList &r);
+int wordlen(wordNode *L);
+wordNode* find_addr(wordNode *str1,wordNode *str2);
+
 
 int main()
 {
@@ -142,6 +152,18 @@ int main()
     Locate(L2, 3);
     */
     //FindLastKposition(L, 4);2.3.21 找出倒数第k个元素
+    /* 2.3.22 创建一个有公共后缀的链表好，找出公共节点的地址
+    vector<char>A1={'l','o','a','d'};
+    vector<char>B1={'b','e'};
+    vector<char>C1={'i','n','g'};
+    wordList L1,L2,L3,pl1,pl2,pl3;
+    CreateWordListWithHead(L1, A1, pl1);
+    CreateWordListWithHead(L2, B1, pl2);
+    CreateWordListWithHead(L3, C1, pl3);
+    pl1->next=L3->next;
+    pl2->next=L3->next;
+    cout<<find_addr(L1, L2)->data<<endl;
+    */
     showLinklist(L);
 
 
@@ -262,6 +284,24 @@ NonDLinklist CreateNonCircularDLinklistWithHead(NonDLinklist &L)
         r->next=s;
         s->pred=r;
         s->next=NULL;
+        r=s;
+    }
+    return L;
+}
+
+//尾插法
+wordList CreateWordListWithHead(wordList &L, vector<char>A,wordList &r)
+{
+    L=(wordList)malloc(sizeof(word));
+    L->next=NULL;
+    wordNode *s;
+    r=L;//r为尾指针
+    for(int i=0;i<A.size();i++)
+    {
+        s=(wordNode*)malloc(sizeof(word));
+        s->data=A[i];
+        s->next=NULL;
+        r->next=s;
         r=s;
     }
     return L;
@@ -854,3 +894,35 @@ int FindLastKposition(Linklist L,int k)
         return 1;
     }
 }
+
+int wordlen(wordNode *L)
+{
+    int count=0;
+    wordNode *p=L;
+    while(p!=NULL)
+    {
+        count++;
+        p=p->next;
+    }
+    return count;
+}
+
+//2.3.22 找到公共后缀节点
+wordNode* find_addr(wordNode *str1,wordNode *str2)
+{
+    int m,n;
+    wordNode *p,*q;
+    m=wordlen(str1);
+    n=wordlen(str2);
+    for(p=str1;m>n;m--)//这个用for赋值并用来判断m和n哪个大的写法非常有意思
+    p=p->next;
+    for(q=str2;n>m;n--)
+    q=q->next;
+    while(p->next!=NULL&&p->next!=q->next)
+    {
+        p=p->next;
+        q=q->next;
+    }
+    return p->next;
+}
+
