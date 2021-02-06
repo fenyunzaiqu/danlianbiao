@@ -66,8 +66,13 @@ NonDLinklist Locate(NonDLinklist &L, int x);//2.3.20 查找x的节点，摘下�
 int FindLastKposition(Linklist L, int k);//2.3.21 找到单链表倒数第k个位置的元素的值
 wordList CreateWordListWithHead(wordList &L, vector<char>A, wordList &r);
 int wordlen(wordNode *L);
-wordNode* find_addr(wordNode *str1,wordNode *str2);
+wordNode* find_addr(wordNode *str1,wordNode *str2);//2.3.22 找到两个有公共后缀链表的第一个公共节点
+void DeleteAbsoulute(Linklist &L,int n);//2.3.23 删除单链表重复的绝对值，并用数组下标储存
+int MaxAbsoultedata(Linklist L);
+Linklist FindCirularNode(Linklist L);//2.3.24 判断一个单链表里有没有环，如果有，则输出环的入口
+void changelist(Linklist L);//2.3.25 将a1,a2,a3..an重新排列为 a1,an,a2,an-1..
 
+LNode *tempp;
 
 int main()
 {
@@ -164,10 +169,19 @@ int main()
     pl2->next=L3->next;
     cout<<find_addr(L1, L2)->data<<endl;
     */
-    showLinklist(L);
-
-
+    /*2.3.23的测试程序
+     int n=MaxAbsoultedata(L);
+    DeleteAbsoulute(L, n);
+    */
+    /*2.3.24 制造一个带环的单链表
+     Linklist L2=NULL;
+    CreateCircularLinklistWithHead(L2);
+    tempp->next=L2->next;
+    cout<<FindCirularNode(L)->data<<"this"<<endl;
+     */
     //cout<<GetElem(L, 3)->data<<endl; 用移动指针的方式来访问数据
+    changelist(L);//2.3.25 逆置
+    showLinklist(L);
     return 0;
 }
 
@@ -209,7 +223,7 @@ Linklist List_TrailInsert(Linklist &L)
 {
     L=(Linklist)malloc(sizeof(Node));//因为不需要关心L->next指向哪里，所以也不需要初始化空链表了
     Node *s,*r=L;//需要多一个尾指针r来指向最后一个将要插入的元素，且要先申请L这个空间，再将L的地址赋值给r，
-    int A[]={1,1,1,2,3,4,5,7,7,7};
+    int A[]={0,1,2,3,4,5,6,7,8,9,10};
     for(int i=0;i<sizeof(A)/sizeof(int);i++)
     {
         s=(Node*)malloc(sizeof(Node));
@@ -218,6 +232,7 @@ Linklist List_TrailInsert(Linklist &L)
         r=s;
     }
     r->next=NULL;//最后赋值初始化完需要将尾指针置空来达到“它是尾指针”的目的
+    tempp=r;
     return L;
 }
 
@@ -914,7 +929,7 @@ wordNode* find_addr(wordNode *str1,wordNode *str2)
     wordNode *p,*q;
     m=wordlen(str1);
     n=wordlen(str2);
-    for(p=str1;m>n;m--)//这个用for赋值并用来判断m和n哪个大的写法非常有意思
+    for(p=str1;m>n;m--)//这个用for赋值并用来判断m和n哪个大的写法非常有意思,功能是遍历到
     p=p->next;
     for(q=str2;n>m;n--)
     q=q->next;
@@ -926,3 +941,118 @@ wordNode* find_addr(wordNode *str1,wordNode *str2)
     return p->next;
 }
 
+
+void DeleteAbsoulute(Linklist &L,int n)
+{
+    vector<int>arr(n+1,0);//创建一个n+1的数组拿来存数，并初始化为0
+    Node *p=L,*r;
+    while(p->next!=NULL)//p为要被删除节点的前驱
+    {
+        if(p->next->data<0)//这里可以简写为 <0?x:y
+        {
+            if(arr[-p->next->data]==0)
+            {
+                arr[-p->next->data]=1;
+                p=p->next;//只有为0（第一个出现的）才能往下继续遍历，要不然会跳过要删的
+            }
+            else
+            {
+                r=p->next;
+                p->next=p->next->next;
+                free(r);
+            }
+        }
+        else
+        {
+            if(arr[p->next->data]==0)
+            {
+                arr[p->next->data]=1;
+                p=p->next;
+            }
+            else
+            {
+                r=p->next;
+                p->next=p->next->next;
+                free(r);
+            }
+        }
+    }
+}
+
+int MaxAbsoultedata(Linklist L)
+{
+    int max=L->next->data;
+    Node *p;
+    p=L->next;
+    while(p!=NULL)
+    {
+        if(p->data<0)
+        {
+            if(-p->data>max)
+                max=-p->data;
+        }
+        else
+        {
+            if(p->data>max)
+                max=p->data;
+        }
+        p=p->next;
+    }
+    return max;
+}
+
+//判断表里有没有环 如果有 环的入口在哪
+Linklist FindCirularNode(Linklist L)
+{
+    Node *fast=L->next->next,*slow=L->next;//快指针动两格
+    while(slow!=NULL&&fast->next!=NULL)//遍历到其中一个到尾节点（下一个为NULL）
+    {
+        fast=fast->next->next;//这个走两步最好用走一步，如果下一个不为空继续走一步
+        slow=slow->next;
+        if(slow==fast)//如果是环节点，遇上了就退出循环
+            break;
+    }
+    if(slow==NULL||fast->next==NULL)//如果有个到了尾节点，就返回不是有环单链表
+        return NULL;
+    Node *p=slow,*r=L;//根据流程图，一个设置在相遇节点，一个设置在头节点，两个依次移动，遇上了就是入口
+    while(p!=r)
+    {
+        p=p->next;
+        r=r->next;
+    }
+    return r;
+}
+
+void changelist(Linklist L)//先找中间节点
+{
+    Node *fast=L,*slow=L,*temp,*insert;//一个走一步一个走两步来找中间节点
+    while(fast->next!=NULL)//只能保证指针在最后一个节点时停止循环，要加个如果fast在空节点了，也要停止循环
+    {
+        fast=fast->next;
+        slow=slow->next;
+        if(fast!=NULL)
+            fast=fast->next;
+        if(fast==NULL)
+            break;
+    }
+    fast=slow->next;
+    slow->next=NULL;//断链，并开始用头插法来原地逆置
+    while(fast!=NULL)
+    {
+        temp=fast->next;//储存后面节点
+        fast->next=slow->next;
+        slow->next=fast;
+        fast=temp;
+    }
+    insert=L->next;
+    fast=slow->next;
+    slow->next=NULL;//断链
+    while(fast!=NULL)//开始间接插入
+    {
+        temp=fast->next;//存储下一个节点的信息
+        fast->next=insert->next;//先与后面的接上
+        insert->next=fast;//再接前面的
+        insert=fast->next;//移动
+        fast=temp;
+    }
+}
